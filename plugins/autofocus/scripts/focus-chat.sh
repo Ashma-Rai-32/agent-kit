@@ -4,6 +4,9 @@
 # Only for Claude sessions running inside VS Code on a Mac.
 [[ "$OSTYPE" == darwin* && "$CLAUDE_CODE_ENTRYPOINT" == "claude-vscode" ]] || exit 0
 
+# Off unless switched on with /autofocus:on (which creates this file).
+[[ -f "$HOME/Library/Caches/FocusClaude/enabled" ]] || exit 0
+
 app="$HOME/Applications/FocusClaude.app"
 [[ -d "$app" ]] || exit 0  # not built yet: run scripts/build-focus-app.sh
 
