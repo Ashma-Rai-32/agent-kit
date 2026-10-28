@@ -8,9 +8,9 @@
       "description": "Builds professional, accessible, modern UIs with React and Next.js."
     },
     {
-      "name": "voice",
-      "source": "./plugins/voice",
-      "description": "Hands-free loop for macOS: brings the Claude chat box back into focus when Claude finishes."
+      "name": "autofocus",
+      "source": "./plugins/autofocus",
+      "description": "macOS: when Claude finishes, bring its VS Code window back and focus the chat box. Off until you turn it on."
     }
   ]
 }

@@ -1,6 +1,0 @@
-{
-  "name": "voice",
-  "description": "Hands-free loop for macOS: brings the Claude chat box back into focus when Claude finishes.",
-  "author": { "name": "Ashma Rai" },
-  "license": "MIT"
-}

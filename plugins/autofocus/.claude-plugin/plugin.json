@@ -1,0 +1,6 @@
+{
+  "name": "autofocus",
+  "description": "macOS: when Claude finishes, bring its VS Code window back and focus the chat box. Off until you turn it on.",
+  "author": { "name": "Ashma Rai" },
+  "license": "MIT"
+}
