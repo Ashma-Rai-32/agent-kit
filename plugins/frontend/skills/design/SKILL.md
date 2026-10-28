@@ -1,5 +1,5 @@
 ---
-name: frontend-design
+name: design
 description: Build professional, modern, accessible web UIs. Use whenever the user asks to
   create, design, restyle or review a page, component, layout, dashboard or landing page,
   or works on React, Next.js, Tailwind or shadcn/ui code.
