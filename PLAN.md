@@ -1,89 +1,79 @@
 # agent-kit: plan
 
-Goal: keep my AI coding-agent setup (instructions, settings, skills) in one public git repo, so a new laptop is fully set up by running one script.
+## Goal
 
-Phase 1 targets Claude Code. The skills themselves stay tool-agnostic (plain `SKILL.md` folders, the open Agent Skills format), so other agents such as Codex, Cursor or Copilot can be supported later by extending the bootstrap, not by rewriting skills.
+A clean, deliberately designed set of AI coding-agent tools (skills, plugins, settings) that anyone, but mainly me, can install on any laptop in a few commands.
 
-## 1. Background: where Claude Code keeps your setup
+This is **not** a copy of my old `~/.claude` setup. Every skill is rebuilt on purpose: focused, current, and public-safe.
 
-Everything personal lives in `~/.claude/` on each laptop:
+## Principles
 
-| Thing | Location | What it does |
-|---|---|---|
-| Global instructions | `~/.claude/CLAUDE.md` | Read at the start of every session, in every project |
-| Settings | `~/.claude/settings.json` | Theme, effort level, permissions (what Claude may or may not do) |
-| Skills | `~/.claude/skills/<name>/SKILL.md` | Expert instructions that load only when relevant |
-| Commands | `~/.claude/commands/*.md` | Things you type, like `/commit` |
-| Memory | `~/.claude/projects/<project>/memory/` | Facts Claude remembers per project |
+1. **Minimal first.** Build one small piece, see it work, then grow.
+2. **One skill, one job.** e.g. `python`, `langgraph`, `rag` as separate skills, not one giant "AI engineer" skill.
+3. **Current knowledge.** Check current docs and versions; no deprecated APIs.
+4. **Public-safe.** No employer or client content. Private notes stay in local files outside the repo.
+5. **Tool-agnostic content.** Skills are plain `SKILL.md` folders (open Agent Skills format), so other agents (Codex, Cursor, Copilot) can use them later.
+6. **Clean history.** Commit at every checkpoint with a Conventional Commit message.
 
-A new laptop starts with none of this. The goal is to keep it in a git repo and have one script put it back.
-
-## 2. The key idea: a plugin marketplace
-
-- A **plugin** is a folder that bundles skills and commands together, plus a small `plugin.json` describing it.
-- A **marketplace** is a repo listing one or more plugins in a `marketplace.json` file.
-- Claude Code can install plugins from a marketplace with `claude plugin install`. This is free; it's just reading files from a folder or a GitHub repo.
-
-So this repo *is* my marketplace. On any laptop: clone it, run the script, and the script tells Claude Code "install my plugins from here."
-
-Why not just copy the files into `~/.claude/skills`? You could, but plugins can be versioned, updated with one command, and installed by other people (clients, teammates) from the public repo. That's the professional route.
-
-## 3. What goes in the repo
+## How it works
 
 ```
-agent-kit/
-├── .claude-plugin/
-│   └── marketplace.json        ← "this repo offers 2 plugins: ai-engineering, fullstack"
-├── plugins/
-│   ├── ai-engineering/
-│   │   ├── .claude-plugin/plugin.json
-│   │   └── skills/  python-ai-engineer/, qdrant/
-│   └── fullstack/
-│       ├── .claude-plugin/plugin.json
-│       └── skills/  senior-react-dev/, aws-terraform-engineer/, commit/
-├── home/
-│   ├── CLAUDE.md               ← global instructions (generic, public-safe)
-│   └── settings.json           ← preferred settings
-├── bootstrap.sh                ← the one script
-├── PLAN.md                     ← this file
-└── README.md
+marketplace (this repo)  →  plugins  →  skills
+.claude-plugin/              plugins/frontend/      skills/design/SKILL.md
+  marketplace.json             .claude-plugin/        → /frontend:design
+                                 plugin.json
 ```
 
-**Public vs private:** no employer content goes in this repo. The global `CLAUDE.md` ends with a line that pulls in `~/.claude/CLAUDE.private.md`, a file that exists only on the work laptop. On the current laptop, the script moves the existing work-specific pointer into that file, so nothing is lost.
+- **Skill:** a `SKILL.md` with instructions. Its `description` decides when Claude uses it automatically.
+- **Plugin:** a folder that bundles related skills. Skills are named `/plugin:skill`.
+- **Marketplace:** the catalog of plugins in this repo.
 
-## 4. What `bootstrap.sh` does, step by step
-
-1. **Installs or updates Claude Code.** If `claude` is missing it runs the official installer; otherwise it runs `claude update`. The current version (2.1.220) is too old for some plugin commands.
-2. **Makes a backup** of the current `~/.claude/CLAUDE.md`, `settings.json` and any skills it touches, into `~/.claude/backups/bootstrap-<date>/`. Nothing is deleted outright.
-3. **Global instructions.** It replaces `~/.claude/CLAUDE.md` with a symlink to `home/CLAUDE.md`. A symlink is a shortcut: editing either one edits the repo file, so `git commit` captures the change.
-4. **Settings: merged, not linked.** Claude Code writes to `settings.json` itself (when you approve permissions or install plugins). Linking it would leak those machine-specific writes into the repo. Instead the script merges `home/settings.json` *into* the existing file, so the repo's values win and everything else is kept.
-5. **Plugins.** It registers the repo as a marketplace (`claude plugin marketplace add <this folder>`), then installs both plugins.
-6. **Removes duplicates.** On the current laptop, the old loose copies of the 4 generic skills and `commands/commit.md` move to the backup folder; otherwise each skill would load twice. Work skills are left alone.
-7. **Safe to re-run.** Running it twice does nothing harmful. A `--dry-run` flag prints what it *would* do without changing anything.
-
-**On a new laptop:**
+**Install:**
 
 ```bash
-git clone https://github.com/<you>/agent-kit.git && cd agent-kit
-./bootstrap.sh --dry-run   # look first
-./bootstrap.sh
-claude auth login          # sign in once
+claude plugin marketplace add Ashma-Rai-32/agent-kit   # or a local path
+claude plugin install frontend@ashma-skills
 ```
 
-## 5. Things to know
+**Edit loop:** edit the skill, commit, run `claude plugin marketplace update ashma-skills` and `claude plugin update frontend@ashma-skills`, then start a new session.
 
-- **One small difference:** plugin skills get a prefix. `/commit` becomes `/fullstack:commit`. Skills Claude picks up automatically work the same as before.
-- **Proposed settings addition:** block Claude from reading `.env` files and `~/.ssh`. That's sensible when freelancing in client repos.
-- **Memory doesn't move.** Memory is per-laptop and per-project. That's fine; it's meant to be local.
+## Roadmap
 
-## 6. Phases
+### ✅ Phase 1: first plugin, end to end
+- [x] Marketplace with one plugin: `frontend`
+- [x] One skill: `design` (professional UI, accessibility, React/Next standards)
+- [x] Installed, loaded and updated locally
 
-- [ ] **Phase 1 (now):** repo layout, plugins, `home/` files, `bootstrap.sh`, README.
-- [ ] **Phase 2:** an `agent-frameworks` skill in `ai-engineering`, with a framework-agnostic core (state, persistence, human-in-the-loop, tools, evals, tracing) plus `references/langgraph.md`, and one reference file per framework added later (Mastra, Claude Agent SDK, ...).
-- [ ] **Later:** support other coding agents (e.g. link skills into Codex/Cursor skill folders, add an `AGENTS.md`).
-- [ ] **Phase 3:** background agents that run while offline (Claude cloud routines or GitHub Actions). Note: cloud sessions only see skills committed inside each project's own `.claude/` folder, not personal plugins.
+### Phase 2: ready to share
+- [ ] `LICENSE` (MIT)
+- [ ] `README.md`: what this is plus the install commands
+- [ ] Push to GitHub (public); install from GitHub to test what others get
 
-## 7. Open questions
+### Phase 3: grow `frontend`
+- [ ] Test that `design` triggers automatically (no slash command)
+- [ ] Improve `design` based on real use
+- [ ] Add focused skills only when needed (e.g. `nextjs`, `review`)
 
-1. Already done: 4 generic skills copied into `plugins/`, and work-specific sections removed from `senior-react-dev`. Keep these, or delete and redo?
-2. Add the `.env` / `~/.ssh` deny rule to settings: yes or no?
+### Phase 4: `ai-engineering` plugin, designed fresh
+- [ ] `python`: modern, typed, production Python for AI apps
+- [ ] `langgraph`: agents, state, persistence, human-in-the-loop
+- [ ] Later: `rag` (incl. Qdrant), `evals`, other frameworks (Mastra, Claude Agent SDK, ...)
+
+### Phase 5: one-command laptop setup
+- [ ] `home/CLAUDE.md`: global working rules (check docs, frameworks first, never commit unasked, explain then do) plus a private import `@~/.claude/CLAUDE.private.md`
+- [ ] `home/settings.json`: preferred settings
+- [ ] `bootstrap.sh`: install/update Claude Code, link CLAUDE.md, merge settings, add marketplace, install plugins; `--dry-run`; safe to re-run
+
+### Later
+- [ ] Support other coding agents (Codex, Cursor, Copilot)
+- [ ] Background agents that run while offline (cloud routines or GitHub Actions)
+
+## Decisions
+
+| Decision | Why |
+|---|---|
+| Plugin marketplace, not copied files | Versioned, one-command install, shareable |
+| Public repo, no employer content | Portfolio-friendly and safe to share |
+| Start with one small `frontend` plugin | Learn how plugins work before scaling |
+| Skill named `design`, not `frontend-design` | Avoids `/frontend:frontend-design` repetition |
+| Plugin version = git commit | Edits reach installs only after commit + update |
