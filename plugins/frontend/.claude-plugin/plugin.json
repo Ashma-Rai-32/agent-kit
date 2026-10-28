@@ -1,0 +1,6 @@
+{
+  "name": "frontend",
+  "description": "Builds professional, accessible, modern UIs with React and Next.js.",
+  "author": { "name": "Ashma Rai" },
+  "license": "MIT"
+}

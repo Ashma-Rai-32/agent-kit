@@ -1,0 +1,11 @@
+{
+  "name": "ashma-skills",
+  "owner": { "name": "Ashma Rai" },
+  "plugins": [
+    {
+      "name": "frontend",
+      "source": "./plugins/frontend",
+      "description": "Builds professional, accessible, modern UIs with React and Next.js."
+    }
+  ]
+}
